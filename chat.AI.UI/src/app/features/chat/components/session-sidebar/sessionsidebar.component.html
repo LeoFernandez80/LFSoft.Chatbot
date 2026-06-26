@@ -1,0 +1,77 @@
+<aside class="sidebar">
+  <form [formGroup]="form" class="sidebar__form">
+    <h3 class="sidebar__heading">Configuración</h3>
+
+    <div class="form-group">
+      <label for="s-label">Nombre de sesión</label>
+      <input id="s-label" formControlName="label" type="text"
+             placeholder="Sesión 1" (blur)="onBlur()" />
+    </div>
+
+    <div class="form-group">
+      <label for="s-userId">User ID</label>
+      <input id="s-userId" formControlName="userId" type="text"
+             placeholder="user-123" (blur)="onBlur()" />
+    </div>
+
+    <div class="form-group">
+      <label for="s-tenantId">Tenant ID</label>
+      <input id="s-tenantId" formControlName="tenantId" type="text"
+             placeholder="empresa-a" (blur)="onBlur()" />
+    </div>
+
+    <div class="form-group">
+      <label for="s-channel">Canal</label>
+      <select id="s-channel" formControlName="channel" (change)="onBlur()">
+        <option value="web">web</option>
+        <option value="mobile">mobile</option>
+        <option value="api">api</option>
+      </select>
+    </div>
+
+    @if (showActions()) {
+      <div class="sidebar__actions">
+        <button
+          type="button"
+          class="btn btn--danger btn--sm"
+          [disabled]="!tab().connected"
+          (click)="onCloseSession()"
+        >
+          Cerrar Sesión
+        </button>
+      </div>
+      <hr class="divider" />
+    }
+
+    @if (tab().sessionId) {
+      <div class="session-info">
+        <span class="session-info__label">Session ID</span>
+        <span class="session-info__value">{{ tab().sessionId }}</span>
+        <span class="session-info__label">Estado</span>
+        <span class="session-info__state"
+              [class.session-info__state--active]="tab().connected">
+          {{ tab().connected ? 'ACTIVA' : 'CERRADA' }}
+        </span>
+      </div>
+      <hr class="divider" />
+    }
+
+    <h3 class="sidebar__heading">Modo</h3>
+
+    <div class="form-group">
+      <select formControlName="mode" (change)="onBlur()">
+        <option value="sync">Síncrono</option>
+        <option value="async">Asíncrono</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Prioridad (async)</label>
+      <select formControlName="priority" (change)="onBlur()">
+        <option value="normal">normal</option>
+        <option value="high">high</option>
+        <option value="low">low</option>
+      </select>
+    </div>
+  </form>
+</aside>

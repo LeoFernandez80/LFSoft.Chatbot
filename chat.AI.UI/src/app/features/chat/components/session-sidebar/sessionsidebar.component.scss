@@ -1,0 +1,42 @@
+:host { display: block; flex-shrink: 0; }
+
+.sidebar {
+  width: 270px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+
+  &__form    { display: flex; flex-direction: column; gap: 12px; padding: 18px; }
+  &__heading {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+  &__actions { display: flex; flex-direction: column; gap: 8px; }
+}
+
+.session-info {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &__label { font-size: 0.72rem; color: var(--text-muted); }
+  &__value {
+    color: var(--accent2);
+    word-break: break-all;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+  }
+  &__state {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    &--active { color: var(--success); }
+  }
+}

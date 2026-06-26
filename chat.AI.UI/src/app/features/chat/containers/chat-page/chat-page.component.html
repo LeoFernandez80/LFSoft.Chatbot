@@ -1,0 +1,64 @@
+<div class="chat-page">
+  <!-- Left: collapsible session list -->
+  <app-session-list-panel
+    [tabs]="tabs()"
+    [activeTabId]="activeTabId()"
+    (addTab)="onAddTab()"
+    (removeTab)="onRemoveTab($event)"
+    (switchTab)="onSwitchTab($event)"
+  />
+
+  <!-- Right: chat window (config moved to modal) -->
+  @if (hasTabs() && activeTab(); as tab) {
+    <div class="chat-page__area">
+      <!-- Toolbar with config button -->
+      <div class="chat-page__topbar">
+        <span class="chat-page__session-label">{{ tab.label }}</span>
+        <button class="chat-page__config-btn" title="Configuración de sesión" (click)="openConfig()">
+          ⚙ Configuración
+        </button>
+      </div>
+
+      <app-chat-window
+        [messages]="tab.messages"
+        [connected]="tab.connected"
+        [isTyping]="isTyping()"
+        (sendMessage)="onSendMessage($event)"
+      />
+    </div>
+  } @else {
+    <app-empty-state
+      message="No hay sesiones abiertas"
+      actionLabel="＋ Nueva sesión"
+      (action)="onAddTab()"
+    />
+  }
+
+  <!-- Config modal -->
+  @if (configOpen() && activeTab(); as tab) {
+    <div class="modal-backdrop" (click)="closeConfig()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal__header">
+          <span class="modal__title">Configuración · {{ tab.label }}</span>
+          <button class="modal__close" (click)="closeConfig()">✕</button>
+        </div>
+        <div class="modal__body">
+          <app-session-sidebar
+            [tab]="tab"
+            [showActions]="false"
+            (configChange)="onConfigChange($event)"
+          />
+        </div>
+        <div class="modal__footer">
+          <button
+            class="btn btn--danger btn--sm"
+            [disabled]="!tab.connected"
+            (click)="onCloseSession(); closeConfig()"
+          >
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

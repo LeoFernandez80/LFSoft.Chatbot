@@ -1,0 +1,36 @@
+<div class="admin-card">
+  <div class="admin-card__header">
+    <span class="admin-card__title">
+      <app-method-badge [method]="cardConfig().method" />
+      {{ cardConfig().title }}
+    </span>
+    <span class="admin-card__endpoint">{{ cardConfig().endpoint }}</span>
+  </div>
+
+  @if (cardConfig().fields?.length) {
+    <form [formGroup]="form" class="admin-card__fields">
+      @for (field of cardConfig().fields; track field.id) {
+        <div class="form-group">
+          <label [for]="'f-' + field.id">{{ field.label }}</label>
+          <input
+            [id]="'f-' + field.id"
+            [formControlName]="field.id"
+            [type]="field.type"
+            [placeholder]="field.placeholder ?? ''"
+          />
+        </div>
+      }
+    </form>
+  }
+
+  <button
+    class="btn btn--sm"
+    [class.btn--danger]="cardConfig().danger"
+    [class.btn--secondary]="!cardConfig().danger"
+    (click)="onExecute()"
+  >
+    {{ cardConfig().danger ? 'Ejecutar limpieza' : 'Ejecutar' }}
+  </button>
+
+  <app-json-output [data]="result()" [isError]="hasError()" />
+</div>

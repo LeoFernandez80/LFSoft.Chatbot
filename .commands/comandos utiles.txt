@@ -1,0 +1,3 @@
+Ejecutar en terminal BASH
+1- Para detener el servicio y liberar el puerto
+curl -s -m 3 http://localhost:3000/api/health || echo "Servidor detenido (sin respuesta)"

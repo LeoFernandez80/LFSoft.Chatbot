@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mandi.AI — Chat</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+--bg: #0f1117;
+--surface: #1a1d27;
+--surface2: #222533;
+--border: #2e3147;
+--accent: #6c63ff;
+--accent2: #4ecdc4;
+--text: #e2e4f0;
+--text-muted: #8b8fa8;
+--user-bubble: #6c63ff;
+--bot-bubble: #222533;
+--success: #4caf50;
+--error: #f44336;
+--warning: #ff9800;
+--radius: 12px;
+--shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+
+body {
+font-family: 'Segoe UI', system-ui, sans-serif;
+background: var(--bg);
+color: var(--text);
+height: 100vh;
+display: flex;
+flex-direction: column;
+overflow: hidden;
+}
+
+/* ── HEADER ── */
+header {
+background: var(--surface);
+border-bottom: 1px solid var(--border);
+padding: 14px 24px;
+display: flex;
+align-items: center;
+gap: 16px;
+flex-shrink: 0;
+}
+header h1 { font-size: 1.1rem; font-weight: 600; }
+header .badge {
+font-size: 0.7rem;
+padding: 2px 8px;
+border-radius: 999px;
+background: var(--accent);
+color: #fff;
+opacity: 0.85;
+}
+#health-dot {
+width: 10px; height: 10px;
+border-radius: 50%;
+background: var(--text-muted);
+margin-left: auto;
+flex-shrink: 0;
+transition: background 0.3s;
+cursor: pointer;
+}
+#health-dot.ok { background: var(--success); box-shadow: 0 0 6px var(--success); }
+#health-dot.err { background: var(--error); box-shadow: 0 0 6px var(--error); }
+
+/* ── APP TABS (Chat / Admin) ── */
+.app-tabs {
+display: flex;
+background: var(--surface);
+border-bottom: 1px solid var(--border);
+flex-shrink: 0;
+}
+.app-tab-btn {
+padding: 10px 20px;
+background: none;
+border: none;
+border-bottom: 2px solid transparent;
+color: var(--text-muted);
+cursor: pointer;
+font-size: 0.875rem;
+transition: all 0.2s;
+}
+.app-tab-btn:hover { color: var(--text); }
+.app-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── MAIN ── */
+main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.tab-panel { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+.tab-panel.active { display: flex; }
+
+/* ── CHAT PANEL ── */
+#tab-chat { flex-direction: column; }
+#tab-chat.active { display: flex; }
+
+/* Session tabs bar */
+.session-tabs-bar {
+display: flex;
+align-items: center;
+background: var(--bg);
+border-bottom: 1px solid var(--border);
+flex-shrink: 0;
+overflow-x: auto;
+padding: 0 8px;
+gap: 2px;
+min-height: 40px;
+}
+.session-tabs-bar::-webkit-scrollbar { height: 3px; }
+.session-tabs-bar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.stab {
+display: flex;
+align-items: center;
+gap: 7px;
+padding: 7px 14px 7px 14px;
+border: 1px solid transparent;
+border-radius: 8px 8px 0 0;
+cursor: pointer;
+font-size: 0.82rem;
+color: var(--text-muted);
+background: transparent;
+white-space: nowrap;
+transition: all 0.15s;
+flex-shrink: 0;
+margin-top: 4px;
+}
+.stab:hover { background: var(--surface2); color: var(--text); }
+.stab.active {
+background: var(--surface);
+color: var(--text);
+border-color: var(--border);
+border-bottom-color: var(--surface);
+margin-bottom: -1px;
+}
+.stab .stab-dot {
+width: 7px; height: 7px;
+border-radius: 50%;
+background: var(--text-muted);
+flex-shrink: 0;
+}
+.stab.active .stab-dot { background: var(--success); }
+.stab.active .stab-dot.inactive { background: var(--text-muted); }
+.stab-close {
+width: 16px; height: 16px;
+border-radius: 4px;
+border: none;
+background: transparent;
+color: var(--text-muted);
+cursor: pointer;
+font-size: 0.8rem;
+line-height: 1;
+display: flex; align-items: center; justify-content: center;
+padding: 0;
+transition: background 0.15s, color 0.15s;
+}
+.stab-close:hover { background: #3a1a1a; color: #f88; }
+.stab-new-btn {
+padding: 5px 10px;
+background: transparent;
+border: 1px dashed var(--border);
+border-radius: 8px;
+color: var(--text-muted);
+cursor: pointer;
+font-size: 0.8rem;
+flex-shrink: 0;
+margin-left: 4px;
+transition: all 0.15s;
+}
+.stab-new-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Chat area (sidebar + window) */
+.chat-area {
+flex: 1;
+display: flex;
+overflow: hidden;
+}
+
+/* Session sidebar */
+.session-sidebar {
+width: 270px;
+flex-shrink: 0;
+background: var(--surface);
+border-right: 1px solid var(--border);
+display: flex;
+flex-direction: column;
+padding: 18px;
+gap: 12px;
+overflow-y: auto;
+}
+.session-sidebar h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color:
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label { font-size: 0.8rem; color: var(--text-muted); }
+.form-group input, .form-group select {
+background: var(--surface2);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 8px 12px;
+color: var(--text);
+font-size: 0.875rem;
+outline: none;
+transition: border-color 0.2s;
+}
+.form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+.form-group select option { background: var(--surface2); }
+
+.btn {
+padding: 9px 16px;
+border: none;
+border-radius: 8px;
+cursor: pointer;
+font-size: 0.875rem;
+font-weight: 500;
+transition: opacity 0.2s, transform 0.1s;
+}
+.btn:hover { opacity: 0.88; }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.btn-danger { background: #3a1a1a; color: #f88; border: 1px solid #5a2a2a; }
+.btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.session-info {
+background: var(--surface2);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 12px;
+font-size: 0.78rem;
+color: var(--text-muted);
+display: none;
+gap: 6px;
+flex-direction: column;
+}
+.session-info.visible { display: flex; }
+.session-info .sid {
+color: var(--accent2);
+word-break: break-all;
+font-family: 'Consolas', monospace;
+font-size: 0.72rem;
+}
+.session-info .label { color: var(--text-muted); }
+
+.divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+
+/* Chat window */
+.chat-window {
+flex: 1;
+display: flex;
+flex-direction: column;
+overflow: hidden;
+}
+.messages {
+flex: 1;
+overflow-y: auto;
+padding: 20px;
+display: flex;
+flex-direction: column;
+gap: 12px;
+}
+.messages::-webkit-scrollbar { width: 6px; }
+.messages::-webkit-scrollbar-track { background: transparent; }
+.messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.msg-row { display: flex; flex-direction: column; max-width: 72%; }
+.msg-row.user { align-self: flex-end; align-items: flex-end; }
+.msg-row.bot { align-self: flex-start; align-items: flex-start; }
+.msg-row.system { align-self: center; align-items: center; max-width: 90%; }
+
+.bubble {
+padding: 10px 14px;
+border-radius: var(--radius);
+font-size: 0.9rem;
+line-height: 1.5;
+word-break: break-word;
+}
+.msg-row.user .bubble { background: var(--user-bubble); color: #fff; border-bottom-right-radius: 4px
+.msg-row.bot .bubble { background: var(--bot-bubble); border: 1px solid var(--border); border-bottom
+.msg-row.system .bubble {
+background: transparent;
+border: 1px solid var(--border);
+color: var(--text-muted);
+font-size: 0.78rem;
+border-radius: 999px;
+padding: 4px 14px;
+text-align: center;
+}
+.msg-meta { font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; padding: 0 4px; }
+
+.quick-replies { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.qr-btn {
+padding: 5px 12px;
+border: 1px solid var(--accent);
+border-radius: 999px;
+background: transparent;
+color: var(--accent);
+font-size: 0.8rem;
+cursor: pointer;
+transition: background 0.2s;
+}
+.qr-btn:hover { background: var(--accent); color: #fff; }
+
+.typing-indicator { display: none; align-items: center; gap: 4px; padding: 10px 14px; }
+.typing-indicator.visible { display: flex; }
+.typing-indicator span {
+width: 7px; height: 7px;
+background: var(--text-muted);
+border-radius: 50%;
+animation: bounce 1.2s infinite;
+}
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce {
+0%, 60%, 100% { transform: translateY(0); }
+30% { transform: translateY(-6px); }
+}
+
+.chat-input-area {
+padding: 16px 20px;
+background: var(--surface);
+border-top: 1px solid var(--border);
+display: flex;
+gap: 10px;
+align-items: flex-end;
+}
+.chat-input-area textarea {
+flex: 1;
+background: var(--surface2);
+border: 1px solid var(--border);
+border-radius: 10px;
+padding: 10px 14px;
+color: var(--text);
+font-size: 0.9rem;
+resize: none;
+outline: none;
+max-height: 120px;
+line-height: 1.4;
+transition: border-color 0.2s;
+font-family: inherit;
+}
+.chat-input-area textarea:focus { border-color: var(--accent); }
+.chat-input-area textarea::placeholder { color: var(--text-muted); }
+
+/* Empty state */
+.empty-sessions {
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 16px;
+color: var(--text-muted);
+}
+.empty-sessions p { font-size: 0.9rem; }
+/* ── ADMIN PANEL ── */
+#tab-admin {
+overflow-y: auto;
+padding: 24px;
+gap: 20px;
+}
+.admin-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+gap: 16px;
+}
+.card {
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: var(--radius);
+padding: 18px;
+display: flex;
+flex-direction: column;
+gap: 12px;
+}
+.card-header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 12px;
+}
+.card-title {
+font-size: 0.85rem;
+font-weight: 600;
+color: var(--text);
+display: flex;
+align-items: center;
+gap: 8px;
+}
+.method-badge {
+font-size: 0.68rem;
+font-weight: 700;
+padding: 2px 7px;
+border-radius: 4px;
+font-family: monospace;
+}
+.method-get { background: #1a3a2a; color: #4caf50; }
+.method-post { background: #1a2a3a; color: #64b5f6; }
+.endpoint-path {
+font-family: 'Consolas', monospace;
+font-size: 0.78rem;
+color: var(--text-muted);
+background: var(--surface2);
+padding: 4px 8px;
+border-radius: 6px;
+}
+.card-body { display: flex; flex-direction: column; gap: 8px; }
+.card-body .form-group label { font-size: 0.75rem; }
+.card-body input {
+background: var(--surface2);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 7px 10px;
+color: var(--text);
+font-size: 0.82rem;
+outline: none;
+transition: border-color 0.2s;
+}
+.card-body input:focus { border-color: var(--accent); }
+.json-output {
+background: var(--bg);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 12px;
+font-family: 'Consolas', monospace;
+font-size: 0.75rem;
+color: var(--accent2);
+max-height: 200px;
+overflow-y: auto;
+white-space: pre-wrap;
+word-break: break-all;
+display: none;
+}
+.json-output.visible { display: block; }
+.json-output.error { color: #f88; }
+
+/* Toast */
+#toast {
+position: fixed;
+bottom: 24px;
+left: 50%;
+transform: translateX(-50%) translateY(20px);
+background: var(--surface2);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 10px 20px;
+font-size: 0.85rem;
+opacity: 0;
+transition: all 0.3s;
+pointer-events: none;
+z-index: 999;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.success { border-color: var(--success); color: var(--success); }
+#toast.error { border-color: var(--error); color: #f88; }
+
+/* Responsive */
+@media (max-width: 640px) {
+.session-sidebar { display: none; }
+.admin-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+<h1>Mandi.AI</h1>
+<span class="badge">v1.0.0</span>
+<div id="health-dot" title="Verificar health check" onclick="checkHealth()"></div>
+</header>
+
+<div class="app-tabs">
+<button class="app-tab-btn active" onclick="switchAppTab('chat', this)">💬 Chat</button>
+<button class="app-tab-btn" onclick="switchAppTab('admin', this)">⚙ Admin &amp; Debug</button>
+</div>
+
+<main>
+
+<!-- ═══════════════════ TAB: CHAT ═══════════════════ -->
+<div id="tab-chat" class="tab-panel active">
+
+<!-- Session tabs bar -->
+<div class="session-tabs-bar" id="session-tabs-bar">
+<!-- tabs injected by JS -->
+<button class="stab-new-btn" onclick="addSessionTab()" title="Nueva sesión">＋ Nueva sesión</butto
+</div>
+
+<!-- Empty state -->
+<div class="empty-sessions" id="empty-state">
+<p>No hay sesiones abiertas</p>
+<button class="btn btn-primary" onclick="addSessionTab()">＋ Nueva sesión</button>
+</div>
+
+<!-- Chat area rendered per active session -->
+<div class="chat-area" id="chat-area" style="display:none;">
+
+<!-- Sidebar de configuración (por sesión activa) -->
+<div class="session-sidebar" id="session-sidebar">
+<h3>Configuración</h3>
+
+<div class="form-group">
+<label>Nombre de sesión</label>
+<input id="s-label" type="text" placeholder="Sesión 1" oninput="updateTabLabel(this.value)" />
+</div>
+<div class="form-group">
+<label>User ID</label>
+<input id="s-userId" type="text" value="user-123" placeholder="user-123" />
+</div>
+<div class="form-group">
+<label>Tenant ID</label>
+<input id="s-tenantId" type="text" value="empresa-a" placeholder="empresa-a" />
+</div>
+<div class="form-group">
+<label>Canal</label>
+<select id="s-channel">
+<option value="web">web</option>
+<option value="mobile">mobile</option>
+<option value="api">api</option>
+</select>
+</div>
+
+<button class="btn btn-primary" id="start-btn" onclick="createSession()" style="display:none">In
+<button class="btn btn-danger btn-sm" id="close-btn" onclick="closeSession()" disabled>Cerrar Se
+
+<hr class="divider" />
+
+<div class="session-info" id="session-info">
+<span class="label">Session ID</span>
+<span class="sid" id="display-sid">—</span>
+<span class="label">Estado</span>
+<span id="display-state" style="color: var(--success); font-size:0.78rem;">—</span>
+</div>
+
+<hr class="divider" />
+<h3>Modo</h3>
+<div class="form-group">
+<select id="send-mode">
+<option value="sync">Síncrono</option>
+<option value="async">Asíncrono</option>
+</select>
+</div>
+<div class="form-group">
+<label>Prioridad (async)</label>
+<select id="async-priority">
+<option value="normal">normal</option>
+<option value="high">high</option>
+<option value="low">low</option>
+</select>
+</div>
+</div>
+
+<!-- Ventana de chat -->
+<div class="chat-window">
+<div class="messages" id="messages">
+<div class="msg-row system">
+<div class="bubble">Creando sesión...</div>
+</div>
+</div>
+
+<div id="typing" class="typing-indicator">
+<span></span><span></span><span></span>
+</div>
+
+<div class="chat-input-area">
+<textarea id="msg-input" rows="1" placeholder="Escribí tu mensaje... (Enter para enviar)"
+onkeydown="handleKey(event)" oninput="autoResize(this)" disabled></textarea>
+<button class="btn btn-primary" id="send-btn" onclick="sendMessage()" disabled>Enviar</button>
+</div>
+</div>
+
+</div><!-- /chat-area -->
+
+</div>
+
+<!-- ═══════════════════ TAB: ADMIN ═══════════════════ -->
+<div id="tab-admin" class="tab-panel">
+<div class="admin-grid">
+
+<!-- Health Check -->
+<div class="card">
+<div class="card-header">
+<span class="card-title"><span class="method-badge method-get">GET</span> Health Check</span>
+<span class="endpoint-path">/api/health</span>
+</div>
+<button class="btn btn-secondary btn-sm" onclick="adminCall('health', 'GET', '/api/health')">Eje
+<pre class="json-output" id="out-health"></pre>
+</div>
+
+<!-- Admin Stats -->
+<div class="card">
+<div class="card-header">
+<span class="card-title"><span class="method-badge method-get">GET</span> Estadísticas del sis
+<span class="endpoint-path">/api/admin/stats</span>
+</div>
+<button class="btn btn-secondary btn-sm" onclick="adminCall('admin-stats', 'GET', '/api/admin/st
+<pre class="json-output" id="out-admin-stats"></pre>
+</div>
+
+<!-- Queue Stats -->
+<div class="card">
+<div class="card-header">
+<span class="card-title"><span class="method-badge method-get">GET</span> Estadísticas de cola
+<span class="endpoint-path">/api/queue/stats</span>
+</div>
+<button class="btn btn-secondary btn-sm" onclick="adminCall('queue-stats', 'GET', '/api/queue/st
+<pre class="json-output" id="out-queue-stats"></pre>
+</div>
+
+<!-- Get Session -->
+<div class="card">
+<div class="card-header">
+<span class="card-title"><span class="method-badge method-get">GET</span> Obtener Sesión</span
+<span class="endpoint-path">/api/sessions/:id</span>
+</div>
+<div class="card-body">
+<div class="form-group">
+<label>Session ID</label>
+<input id="in-get-session" type="text" placeholder="sess-abc-123" />
+</div>
+</div>
+<button class="btn btn-secondary btn-sm" onclick="adminGetSession()">Ejecutar</button>
+<pre class="json-output" id="out-get-session"></pre>
+</div>
+
+<!-- User Sessions -->
+<div class="card">
+<div class="card-header">
+<span class="card-title"><span class="method-badge method-get">GET</span> Sesiones de usuario<
+<span class="endpoint-path">/api/users/:userId/sessions</span>
+</div>
+<div class="card-body">
+<div class="form-group">
+<label>User ID</label>
+<input id="in-user-sessions" type="text" value="user-123" />
+</div>
+</div>
+<button class="btn btn-secondary btn-sm" onclick="adminUserSessions()">Ejecutar</button>
+<pre class="json-output" id="out-user-sessions"></pre>
+</div>
+
+<!-- Chat History -->
+<div class="card">
+<div class="card-header">
+<span class="card-title"><span class="method-badge method-get">GET</span> Historial de chat</s
+<span class="endpoint-path">/api/chat/history/:sessionId</span>
+</div>
+<div class="card-body">
+<div class="form-group">
+<label>Session ID</label>
+<input id="in-history-sid" type="text" placeholder="sess-abc-123" />
+</div>
+<div style="display:flex; gap:8px;">
+<div class="form-group" style="flex:1">
+<label>Limit</label>
+<input id="in-history-limit" type="number" value="20" />
+</div>
+<div class="form-group" style="flex:1">
+<label>Offset</label>
+<input id="in-history-offset" type="number" value="0" />
+</div>
+</div>
+</div>
+<button class="btn btn-secondary btn-sm" onclick="adminChatHistory()">Ejecutar</button>
+<pre class="json-output" id="out-history"></pre>
+</div>
+
+<!-- Async Message -->
+<div class="card">
+<div class="card-header">
+<span class="card-title"><span class="method-badge method-post">POST</span> Mensaje asíncrono<
+<span class="endpoint-path">/api/chat/message/async</span>
+</div>
+<div class="card-body">
+<div class="form-group">
+<label>Session ID</label>
+<input id="in-async-sid" type="text" placeholder="sess-abc-123" />
+</div>
+<div class="form-group">
+<label>User ID</label>
+<input id="in-async-uid" type="text" value="user-123" />
+</div>
+<div class="form-group">
+<label>Tenant ID</label>
+<input id="in-async-tid" type="text" value="empresa-a" />
+</div>
+<div class="form-group">
+<label>Mensaje</label>
+<input id="in-async-msg" type="text" value="Hola, necesito ayuda" />
+</div>
+<div class="form-group">
+<label>Prioridad</label>
+<input id="in-async-priority" type="text" value="normal" />
+</div>
+</div>
+<button class="btn btn-secondary btn-sm" onclick="adminAsyncMsg()">Ejecutar</button>
+<pre class="json-output" id="out-async-msg"></pre>
+</div>
+
+<!-- Cleanup Sessions -->
+<div class="card">
+<div class="card-header">
+<span class="card-title"><span class="method-badge method-post">POST</span> Limpiar sesiones e
+<span class="endpoint-path">/api/admin/cleanup-sessions</span>
+</div>
+<button class="btn btn-danger btn-sm" onclick="adminCleanup()">Ejecutar limpieza</button>
+<pre class="json-output" id="out-cleanup"></pre>
+</div>
+
+</div>
+</div>
+
+</main>
+
+<div id="toast"></div>
+<script>
+// ── STATE ──
+const BASE = '';
+let tabCounter = 0;
+let activeTabId = null;
+
+// tabs: Map<tabId, { tabId, label, sessionId, userId, tenantId, channel, mode, priority, messages, co
+const tabs = new Map();
+
+// ── APP TABS (Chat / Admin) ──
+function switchAppTab(name, btn) {
+document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+document.querySelectorAll('.app-tab-btn').forEach(b => b.classList.remove('active'));
+document.getElementById('tab-' + name).classList.add('active');
+btn.classList.add('active');
+}
+
+// ── TOAST ──
+function toast(msg, type = 'success') {
+const t = document.getElementById('toast');
+t.textContent = msg;
+t.className = 'show ' + type;
+clearTimeout(t._timer);
+t._timer = setTimeout(() => t.className = '', 2800);
+}
+
+// ── HEALTH DOT ──
+async function checkHealth() {
+try {
+const r = await fetch('/api/health');
+const dot = document.getElementById('health-dot');
+dot.className = r.ok ? 'ok' : 'err';
+} catch { document.getElementById('health-dot').className = 'err'; }
+}
+checkHealth();
+
+// ── SESSION TABS ──
+function addSessionTab() {
+tabCounter++;
+const tabId = `t${tabCounter}`;
+const label = `Sesión ${tabCounter}`;
+tabs.set(tabId, {
+tabId,
+label,
+sessionId: null,
+userId: 'user-123',
+tenantId: 'empresa-a',
+channel: 'web',
+mode: 'sync',
+priority: 'normal',
+messages: [],
+connected: false
+});
+renderTabBar();
+switchSessionTab(tabId);
+createSession();
+}
+
+function removeSessionTab(tabId, event) {
+event.stopPropagation();
+const tab = tabs.get(tabId);
+// Close session on server if active
+if (tab && tab.sessionId) {
+fetch(`/api/sessions/${tab.sessionId}/close`, {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ reason: 'user_ended' })
+}).catch(() => {});
+}
+tabs.delete(tabId);
+if (activeTabId === tabId) {
+const remaining = [...tabs.keys()];
+activeTabId = remaining.length ? remaining[remaining.length - 1] : null;
+}
+renderTabBar();
+if (activeTabId) {
+switchSessionTab(activeTabId);
+} else {
+showEmptyState();
+}
+}
+
+function renderTabBar() {
+const bar = document.getElementById('session-tabs-bar');
+// Keep the new-session button
+bar.innerHTML = '';
+for (const [id, tab] of tabs) {
+const btn = document.createElement('button');
+btn.className = 'stab' + (id === activeTabId ? ' active' : '');
+btn.onclick = () => switchSessionTab(id);
+
+const dot = document.createElement('span');
+dot.className = 'stab-dot' + (tab.connected ? '' : ' inactive');
+btn.appendChild(dot);
+
+const labelSpan = document.createElement('span');
+labelSpan.textContent = tab.label;
+btn.appendChild(labelSpan);
+
+const closeBtn = document.createElement('button');
+closeBtn.className = 'stab-close';
+closeBtn.title = 'Cerrar';
+closeBtn.textContent = '✕';
+closeBtn.onclick = (e) => removeSessionTab(id, e);
+btn.appendChild(closeBtn);
+
+bar.appendChild(btn);
+}
+const newBtn = document.createElement('button');
+newBtn.className = 'stab-new-btn';
+newBtn.title = 'Nueva sesión';
+newBtn.textContent = '＋ Nueva sesión';
+newBtn.onclick = addSessionTab;
+bar.appendChild(newBtn);
+}
+
+function showEmptyState() {
+document.getElementById('empty-state').style.display = 'flex';
+document.getElementById('chat-area').style.display = 'none';
+activeTabId = null;
+}
+
+function switchSessionTab(tabId) {
+// Save current sidebar state into previous active tab
+saveCurrentSidebarState();
+
+activeTabId = tabId;
+const tab = tabs.get(tabId);
+
+document.getElementById('empty-state').style.display = 'none';
+document.getElementById('chat-area').style.display = 'flex';
+
+// Update sidebar
+document.getElementById('s-label').value = tab.label;
+document.getElementById('s-userId').value = tab.userId;
+document.getElementById('s-tenantId').value = tab.tenantId;
+document.getElementById('s-channel').value = tab.channel;
+document.getElementById('send-mode').value = tab.mode;
+document.getElementById('async-priority').value = tab.priority;
+
+// Session info
+if (tab.sessionId) {
+document.getElementById('display-sid').textContent = tab.sessionId;
+document.getElementById('display-state').textContent = tab.connected ? 'ACTIVA' : 'CERRADA';
+document.getElementById('display-state').style.color = tab.connected ? 'var(--success)' : 'var(--t
+document.getElementById('session-info').classList.add('visible');
+} else {
+document.getElementById('session-info').classList.remove('visible');
+document.getElementById('display-sid').textContent = '—';
+document.getElementById('display-state').textContent = '—';
+}
+
+// Buttons
+document.getElementById('start-btn').disabled = tab.connected;
+document.getElementById('close-btn').disabled = !tab.connected;
+document.getElementById('msg-input').disabled = !tab.connected;
+document.getElementById('send-btn').disabled = !tab.connected;
+document.getElementById('start-btn').textContent = tab.connected ? 'Sesión activa' : 'Iniciar Sesión
+
+// Render messages
+renderMessages(tab.messages);
+
+// Update tab bar active state
+renderTabBar();
+}
+
+function saveCurrentSidebarState() {
+if (!activeTabId || !tabs.has(activeTabId)) return;
+const tab = tabs.get(activeTabId);
+tab.userId = document.getElementById('s-userId').value.trim() || tab.userId;
+tab.tenantId = document.getElementById('s-tenantId').value.trim() || tab.tenantId;
+tab.channel = document.getElementById('s-channel').value;
+tab.mode = document.getElementById('send-mode').value;
+tab.priority = document.getElementById('async-priority').value;
+tab.label = document.getElementById('s-label').value.trim() || tab.label;
+}
+
+function updateTabLabel(value) {
+if (!activeTabId || !tabs.has(activeTabId)) return;
+const tab = tabs.get(activeTabId);
+tab.label = value || tab.label;
+// Update only the label span in the active tab button without full re-render
+const activeBtns = document.querySelectorAll('.stab.active span:not(.stab-dot)');
+activeBtns.forEach(s => s.textContent = tab.label);
+}
+
+function renderMessages(messages) {
+const container = document.getElementById('messages');
+container.innerHTML = '';
+for (const m of messages) {
+appendMsgDOM(container, m.role, m.content, m.meta, m.quickReplies);
+}
+container.scrollTop = container.scrollHeight;
+}
+
+// ── CHAT ──
+function appendMsgDOM(container, role, content, meta, quickReplies) {
+const row = document.createElement('div');
+row.className = 'msg-row ' + role;
+
+const bubble = document.createElement('div');
+bubble.className = 'bubble';
+bubble.textContent = content;
+row.appendChild(bubble);
+
+if (meta) {
+const m = document.createElement('div');
+m.className = 'msg-meta';
+m.textContent = meta;
+row.appendChild(m);
+}
+
+if (quickReplies && quickReplies.length) {
+const qr = document.createElement('div');
+qr.className = 'quick-replies';
+quickReplies.forEach(qrItem => {
+const b = document.createElement('button');
+b.className = 'qr-btn';
+const label = (typeof qrItem === 'object' && qrItem !== null) ? (qrItem.label || qrItem.value) :
+const value = (typeof qrItem === 'object' && qrItem !== null) ? (qrItem.value || qrItem.label) :
+b.textContent = label;
+b.onclick = () => sendText(value);
+qr.appendChild(b);
+});
+row.appendChild(qr);
+}
+
+container.appendChild(row);
+container.scrollTop = container.scrollHeight;
+return row;
+}
+
+function addMessage(role, content, meta, quickReplies) {
+if (!activeTabId) return;
+const tab = tabs.get(activeTabId);
+tab.messages.push({ role, content, meta, quickReplies });
+const container = document.getElementById('messages');
+appendMsgDOM(container, role, content, meta, quickReplies);
+}
+function setTyping(visible) {
+document.getElementById('typing').classList.toggle('visible', visible);
+const container = document.getElementById('messages');
+container.scrollTop = container.scrollHeight;
+}
+
+// ── SESSION ──
+async function createSession() {
+if (!activeTabId) return;
+saveCurrentSidebarState();
+const tab = tabs.get(activeTabId);
+
+const { userId, tenantId, channel } = tab;
+if (!userId || !tenantId) { toast('userId y tenantId son obligatorios', 'error'); return; }
+
+const btn = document.getElementById('start-btn');
+btn.disabled = true; btn.textContent = 'Conectando...';
+
+try {
+const r = await fetch('/api/sessions', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ userId, tenantId, channel })
+});
+const data = await r.json();
+if (!r.ok) throw new Error(data.error || r.statusText);
+
+tab.sessionId = data.sessionId;
+tab.connected = true;
+
+document.getElementById('display-sid').textContent = tab.sessionId;
+document.getElementById('display-state').textContent = 'ACTIVA';
+document.getElementById('display-state').style.color = 'var(--success)';
+document.getElementById('session-info').classList.add('visible');
+document.getElementById('close-btn').disabled = false;
+document.getElementById('msg-input').disabled = false;
+document.getElementById('send-btn').disabled = false;
+document.getElementById('msg-input').focus();
+btn.textContent = 'Sesión activa';
+
+// Autofill admin inputs
+['in-get-session','in-history-sid','in-async-sid'].forEach(id => {
+const el = document.getElementById(id);
+if (el && !el.value) el.value = tab.sessionId;
+});
+
+addMessage('system', `Sesión iniciada · ${tab.sessionId.substring(0, 16)}...`);
+toast('Sesión creada correctamente');
+renderTabBar();
+} catch (e) {
+toast('Error: ' + e.message, 'error');
+btn.disabled = false; btn.textContent = 'Iniciar Sesión';
+}
+}
+
+async function closeSession() {
+if (!activeTabId) return;
+const tab = tabs.get(activeTabId);
+if (!tab || !tab.sessionId) return;
+try {
+const r = await fetch(`/api/sessions/${tab.sessionId}/close`, {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ reason: 'user_ended' })
+});
+const data = await r.json();
+if (!r.ok) throw new Error(data.error || r.statusText);
+
+tab.connected = false;
+addMessage('system', 'Sesión cerrada');
+document.getElementById('display-state').textContent = 'CERRADA';
+document.getElementById('display-state').style.color = 'var(--text-muted)';
+document.getElementById('close-btn').disabled = true;
+document.getElementById('msg-input').disabled = true;
+document.getElementById('send-btn').disabled = true;
+document.getElementById('start-btn').disabled = false;
+document.getElementById('start-btn').textContent = 'Iniciar Sesión';
+toast('Sesión cerrada');
+renderTabBar();
+} catch (e) {
+toast('Error: ' + e.message, 'error');
+}
+}
+
+async function sendMessage() {
+const input = document.getElementById('msg-input');
+const text = input.value.trim();
+if (!text || !activeTabId) return;
+input.value = '';
+input.style.height = '';
+await sendText(text);
+}
+
+async function sendText(text) {
+if (!activeTabId) { toast('Primero iniciá una sesión', 'error'); return; }
+const tab = tabs.get(activeTabId);
+if (!tab || !tab.sessionId) { toast('Primero iniciá una sesión', 'error'); return; }
+
+saveCurrentSidebarState();
+
+addMessage('user', text, new Date().toLocaleTimeString());
+setTyping(true);
+document.getElementById('send-btn').disabled = true;
+
+const body = {
+sessionId: tab.sessionId,
+userId: tab.userId,
+tenantId: tab.tenantId,
+message: { content: text, type: 'text' },
+metadata: { channel: tab.channel }
+};
+
+try {
+let endpoint = '/api/chat/message';
+if (tab.mode === 'async') {
+endpoint = '/api/chat/message/async';
+body.priority = tab.priority;
+}
+const r = await fetch(endpoint, {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify(body)
+});
+const data = await r.json();
+if (!r.ok) throw new Error(data.error || r.statusText);
+
+setTyping(false);
+
+if (tab.mode === 'async') {
+addMessage('system', `Mensaje en cola · ID: ${data.messageId} · Estado: ${data.status}`);
+} else {
+const content = data.message?.content || JSON.stringify(data);
+const quickReplies = data.message?.quickReplies || [];
+const intent = data.metadata?.intent;
+const procTime = data.metadata?.processingTime;
+const meta = [intent && `intent: ${intent}`, procTime && `${procTime}ms`].filter(Boolean).join('
+addMessage('bot', content, meta || undefined, quickReplies.length ? quickReplies : undefined);
+}
+} catch (e) {
+setTyping(false);
+addMessage('system', '⚠ Error: ' + e.message);
+toast('Error al enviar: ' + e.message, 'error');
+} finally {
+document.getElementById('send-btn').disabled = false;
+document.getElementById('msg-input').focus();
+}
+}
+
+function handleKey(e) {
+if (e.key === 'Enter' && !e.shiftKey) {
+e.preventDefault();
+sendMessage();
+}
+}
+
+function autoResize(el) {
+el.style.height = 'auto';
+el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// ── ADMIN HELPERS ──
+function showOutput(id, data, isError) {
+const el = document.getElementById('out-' + id);
+el.textContent = JSON.stringify(data, null, 2);
+el.className = 'json-output visible' + (isError ? ' error' : '');
+}
+
+async function adminCall(id, method, path) {
+try {
+const r = await fetch(path, { method });
+const data = await r.json();
+showOutput(id, data, !r.ok);
+} catch (e) { showOutput(id, { error: e.message }, true); }
+}
+
+async function adminGetSession() {
+const sid = document.getElementById('in-get-session').value.trim();
+if (!sid) { toast('Ingresá un Session ID', 'error'); return; }
+await adminCall('get-session', 'GET', `/api/sessions/${encodeURIComponent(sid)}`);
+}
+
+async function adminUserSessions() {
+const uid = document.getElementById('in-user-sessions').value.trim();
+if (!uid) { toast('Ingresá un User ID', 'error'); return; }
+await adminCall('user-sessions', 'GET', `/api/users/${encodeURIComponent(uid)}/sessions`);
+}
+
+async function adminChatHistory() {
+const sid = document.getElementById('in-history-sid').value.trim();
+const limit = document.getElementById('in-history-limit').value || 20;
+const offset = document.getElementById('in-history-offset').value || 0;
+if (!sid) { toast('Ingresá un Session ID', 'error'); return; }
+await adminCall('history', 'GET', `/api/chat/history/${encodeURIComponent(sid)}?limit=${limit}&offse
+}
+
+async function adminAsyncMsg() {
+const sid = document.getElementById('in-async-sid').value.trim();
+const uid = document.getElementById('in-async-uid').value.trim();
+const tid = document.getElementById('in-async-tid').value.trim();
+const msg = document.getElementById('in-async-msg').value.trim();
+const priority = document.getElementById('in-async-priority').value.trim();
+if (!sid || !uid || !tid || !msg) { toast('Completá todos los campos', 'error'); return; }
+try {
+const r = await fetch('/api/chat/message/async', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ sessionId: sid, userId: uid, tenantId: tid, message: { content: msg, type
+});
+const data = await r.json();
+showOutput('async-msg', data, !r.ok);
+} catch (e) { showOutput('async-msg', { error: e.message }, true); }
+}
+
+async function adminCleanup() {
+try {
+const r = await fetch('/api/admin/cleanup-sessions', { method: 'POST', headers: { 'Content-Type':
+const data = await r.json();
+showOutput('cleanup', data, !r.ok);
+if (r.ok) toast(`Limpieza completada: ${data.count} sesiones`);
+} catch (e) { showOutput('cleanup', { error: e.message }, true); }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+<header class="header">
+  <h1 class="header__title">{{ appName() }}</h1>
+  <app-badge [text]="appVersion()" />
+
+  <nav class="header__nav">
+    @for (tab of navTabs(); track tab.route) {
+      <a
+        class="header__nav-link"
+        [routerLink]="tab.route"
+        routerLinkActive="header__nav-link--active"
+      >
+        <span>{{ tab.icon }}</span>
+        {{ tab.label }}
+      </a>
+    }
+  </nav>
+
+  <app-health-dot class="header__health" />
+</header>

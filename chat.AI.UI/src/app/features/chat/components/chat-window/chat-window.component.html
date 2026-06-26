@@ -1,0 +1,11 @@
+<div class="chat-window">
+  <app-message-list
+    [messages]="messages()"
+    (quickReplySelected)="sendMessage.emit($event)"
+  />
+  <app-typing-indicator [visible]="isTyping()" />
+  <app-chat-input
+    [disabled]="!connected()"
+    (sendMessage)="sendMessage.emit($event)"
+  />
+</div>

@@ -1,0 +1,98 @@
+// ── Design tokens ────────────────────────────────────────────────────────────
+:root {
+  --bg:           #0f1117;
+  --surface:      #1a1d27;
+  --surface2:     #222533;
+  --border:       #2e3147;
+  --accent:       #6c63ff;
+  --accent2:      #4ecdc4;
+  --text:         #e2e4f0;
+  --text-muted:   #8b8fa8;
+  --user-bubble:  #6c63ff;
+  --bot-bubble:   #222533;
+  --success:      #4caf50;
+  --error:        #f44336;
+  --warning:      #ff9800;
+  --radius:       12px;
+  --shadow:       0 4px 24px rgba(0, 0, 0, 0.4);
+  --font-family:  'Segoe UI', system-ui, sans-serif;
+  --font-mono:    'Consolas', 'Monaco', monospace;
+}
+
+// ── Reset ─────────────────────────────────────────────────────────────────────
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  font-family: var(--font-family);
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+// ── Scrollbar ─────────────────────────────────────────────────────────────────
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+// ── Reusable utilities ────────────────────────────────────────────────────────
+.btn {
+  padding: 9px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: var(--font-family);
+  transition: opacity 0.2s, transform 0.1s;
+
+  &:hover    { opacity: 0.88; }
+  &:active   { transform: scale(0.97); }
+  &:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  &--primary   { background: var(--accent); color: #fff; }
+  &--secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  &--danger    { background: #3a1a1a; color: #f88; border: 1px solid #5a2a2a; }
+  &--sm        { padding: 6px 12px; font-size: 0.8rem; }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  input,
+  select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-size: 0.875rem;
+    font-family: var(--font-family);
+    outline: none;
+    transition: border-color 0.2s;
+
+    &:focus { border-color: var(--accent); }
+    option  { background: var(--surface2); }
+  }
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 4px 0;
+}

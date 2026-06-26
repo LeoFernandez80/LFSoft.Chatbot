@@ -1,0 +1,43 @@
+<div class="panel" [class.panel--collapsed]="collapsed()">
+  <!-- Top toolbar -->
+  <div class="panel__toolbar">
+    @if (!collapsed()) {
+      <span class="panel__title">Sesiones</span>
+    }
+    <!-- Toggle button: arrow points right when expanded, left when collapsed -->
+    <button
+      class="panel__toggle"
+      [title]="collapsed() ? 'Expandir panel' : 'Colapsar panel'"
+      (click)="toggle()"
+    >
+      {{ collapsed() ? '▶' : '◀' }}
+    </button>
+  </div>
+
+  <!-- Session list -->
+  <div class="panel__list">
+    @for (tab of tabs(); track tab.id) {
+      <app-session-list-item
+        [tab]="tab"
+        [isActive]="tab.id === activeTabId()"
+        [collapsed]="collapsed()"
+        (tabClick)="switchTab.emit($event)"
+        (closeClick)="removeTab.emit($event)"
+      />
+    }
+  </div>
+
+  <!-- Add session button -->
+  <div class="panel__footer">
+    <button
+      class="panel__add-btn"
+      [title]="collapsed() ? 'Nueva sesión' : ''"
+      (click)="addTab.emit()"
+    >
+      <span class="panel__add-icon">＋</span>
+      @if (!collapsed()) {
+        <span class="panel__add-label">Nueva sesión</span>
+      }
+    </button>
+  </div>
+</div>

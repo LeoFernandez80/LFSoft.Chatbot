@@ -1,0 +1,12 @@
+<div class="admin-page">
+  <div class="admin-page__grid">
+    @for (card of CARD_CONFIGS; track card.id) {
+      <app-admin-card
+        [cardConfig]="card"
+        [result]="resultFor(card.id)"
+        [hasError]="hasErrorFor(card.id)"
+        (execute)="onExecute(card.id, $event)"
+      />
+    }
+  </div>
+</div>

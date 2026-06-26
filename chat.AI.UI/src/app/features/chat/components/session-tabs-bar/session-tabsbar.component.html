@@ -1,0 +1,11 @@
+<div class="tabs-bar">
+  @for (tab of tabs(); track tab.id) {
+    <app-session-tab-item
+      [tab]="tab"
+      [isActive]="tab.id === activeTabId()"
+      (tabClick)="switchTab.emit($event)"
+      (closeClick)="removeTab.emit($event)"
+    />
+  }
+  <button class="tabs-bar__new-btn" (click)="addTab.emit()">＋ Nueva sesión</button>
+</div>
